@@ -1,0 +1,32 @@
+[
+    {
+        "idx": 1,
+        "cmd": "inc",
+        "param": 1
+    },
+    {
+        "idx": 2,
+        "cmd": "dec",
+        "param": 2
+    },
+    {
+        "idx": 3,
+        "cmd": "dec",
+        "param": 2
+    },
+    {
+        "idx": 4,
+        "cmd": "isz",
+        "param": 2
+    },
+    {
+        "idx": 5,
+        "cmd": "jmp",
+        "param": 1
+    },
+    {
+        "idx": 6,
+        "cmd": "stp",
+        "param": 1
+    }
+]

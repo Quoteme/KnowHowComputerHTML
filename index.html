@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>Know-How-Computer (Luca Leon Happel)</title>
+		<meta name="author" content="Luca Leon Happel">
+		<style media="screen">
+			body{
+				padding: 0px;
+				margin: 0px;
+			}
+			.match{
+				background-image:  url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAIAAAAQCAIAAACzyjnjAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH4QsKEDQeVKLeFgAAABl0RVh0Q29tbWVudABDcmVhdGVkIHdpdGggR0lNUFeBDhcAAAAmSURBVAjXY/zCL8TAwMDEwMBwnZGZ8eejM/cfPWViYGCAClKbAgDKiQdcNgmfbAAAAABJRU5ErkJggg==');
+				width: 4px;
+				height: 32px;
+				background-size: cover;
+				margin-right: 3px;
+				display: inline-block;
+			}
+			.matches{
+				width: 500px;
+				display: block;
+				overflow: auto;
+			}
+			table {
+			    border-collapse: collapse;
+			}
+			table, th, td {
+				border: 1px solid black;
+			}
+			th{
+				width: 70px;
+			}
+			.mainMenu{
+				float: left;
+				border-left: 1px solid black;
+				border-right: 1px solid black;
+				display: inline-block;
+				height: 100vh;
+				overflow: scroll;
+				min-width: 250px;
+			}
+			input{
+				width: 60px;
+			}
+			.index{
+				width: 30px;
+				display: inline-block;
+				text-align: right;
+			}
+			#registers div{
+				margin-bottom: 10px;
+			}
+			.datenregister{
+				border-left: 1px solid black;
+				border-right: none;
+				height: 100vh;
+				overflow: hidden;
+			}
+		</style>
+	</head>
+	<body>
+		<div class="programm mainMenu">
+			<h2>PROGRAMM</h2>
+			<table id="code">
+				<tr>
+					<th>Idx</th>
+					<th>Cmd</th>
+					<th>Param</th>
+					<th><button type="button" onclick="addCode();">+</button></th>
+				</tr>
+			</table>
+		</div>
+		<div class="settings mainMenu">
+			<h2>EINSTELLUNGEN</h2>
+			<div>
+				<div>
+					Programmzeiger: <input id="pointerDisplay" type="number" value="1" onchange="pointer = this.value; updatePointer();">
+				</div>
+				<div>
+					Gewschwindigkeit: <span id="clockspeed">1</span><br>
+					<input style="width:90%" type="range" min="0.10" max="5" step="0.10" value="1" onchange="document.getElementById('clockspeed').innerHTML = this.value">
+				</div>
+				<div>
+					Intervall:<br>
+					<button type="button" onclick="run=true; startInterval();">Start</button>
+					<button type="button" onclick="run=false;">Pause</button>
+					<button type="button" onclick="tick();">Schritt</button>
+				</div>
+				<div>
+					Datei:<br>
+					<button type="button" onclick="save();">Speichern</button>
+					<br>
+					<input style="width: auto;" id="upload" type="file" value="" onchange="load();">
+				</div>
+			</div>
+		</div>
+		<div class="datenregister mainMenu">
+			<h2>DATENREGISTER</h2>
+			<div id="registers">
+				<div></div>
+			</div>
+			<button type="button" onclick="addDataregister()">+</button>
+		</div>
+	</body>
+	<script type="text/javascript">
+		// der Programmzeiger/pointer ist die Zeilenadresse, welche bei dem jetzigen Tick ausgeführt wird
+		var pointer = 1;
+		// Nur dann das Programm ausführen wenn "run" true ist
+		var run = true;
+		// Liest hochgeladene Programmcodes durch
+		var reader = new FileReader();
+
+		function addCell() {
+			var index = document.getElementById("code").getElementsByTagName("tr");
+			document.getElementById('code').innerHTML += "<tr id='Cell" + index.length + "'><td>" + index.length + "</td><td><select class='cmd'><option value=''>---</option><option value='jmp'>jmp</option><option value='isz'>isz</option><option value='inc'>inc</option><option value='dec'>dec</option><option value='stp'>stp</option></select></td><td><input class='param' type='number' value='1'></td></tr>";
+		}
+		function addDataregister() {
+			var index = document.getElementById("registers").getElementsByTagName("div");
+			document.getElementById("registers").innerHTML += "<div id='register" + index.length + "'><span class='index'>" + index.length + "</span><span><span class='amount'><input class='registerValue' type='number' onchange='updateRegister(" + index.length + ")' value='0'/></span></span><br><span class='matches'></span></div>";
+		}
+		function addCode() {
+			// Die Funktion "addCode" ist so wie die Funktion "addCell", nur dass durch durch "addCode" alle anderen Zellen/Codes nicht überschrieben werden
+			var backup = programmToJson();
+			backup[backup.length] = {"idx": backup.length+1, "cmd": "", "param": 1};
+			jsonToProgramm(backup);
+		}
+		function clearRegisters() {
+			document.getElementById("registers").indexHTML = "<div></div>";
+		}
+		function clearCells() {
+			document.getElementById('code').innerHTML = "<tr><th>Idx</th><th>Cmd</th><th>Param</th><th><button type='button' onclick='addCell();'>+</button></th></tr>";
+		}
+		function updateRegister(i) {
+			var index = document.getElementById("register"+i);
+			var value = document.getElementById("register"+i).getElementsByClassName("amount")[0].getElementsByClassName("registerValue")[0].value;
+			var matches = document.getElementById("register"+i).getElementsByClassName("matches")[0];
+			while (value >= 256) {
+				value -= 256;
+			}
+			if (value < 0) {
+				value = 255;
+			}
+			matches.innerHTML = "";
+			for (var x = 0; x < value; x++) {
+				matches.innerHTML += "<div class='match'></div>";
+			}
+			document.getElementById("register"+i).getElementsByClassName("amount")[0].getElementsByClassName("registerValue")[0].value = value;
+		}
+		// ein "Tick" ist ein Aufruf zum Laden und Ausführen eines Befehls vom Prozessor aus
+		function tick() {
+			if (document.getElementById("Cell"+pointer) !== null) {
+				var cmd = document.getElementById("Cell"+pointer).getElementsByClassName("cmd")[0].value;
+				var param = document.getElementById("Cell"+pointer).getElementsByClassName("param")[0].value;
+				execute(cmd, param);
+			}
+			updatePointer();
+		}
+		function execute(cmd, param) {
+			switch (cmd) {
+				case "":
+					pointer++;
+					break;
+				case "jmp":
+					pointer = param;
+					break;
+				case "isz":
+					if (document.getElementById("register"+param).getElementsByClassName("amount")[0].getElementsByClassName("registerValue")[0].value == 0) {
+						pointer+=2;
+					}else {
+						pointer+=1;
+					}
+					break;
+				case "inc":
+					document.getElementById("register"+param).getElementsByClassName("amount")[0].getElementsByClassName("registerValue")[0].value++;
+					updateRegister(param);
+					pointer++;
+					break;
+				case "dec":
+					document.getElementById("register"+param).getElementsByClassName("amount")[0].getElementsByClassName("registerValue")[0].value--;
+					updateRegister(param);
+					pointer++;
+					break;
+				case "stp":
+					run = false;
+					break;
+				default:
+					break;
+			}
+		}
+		function resetPointer() {
+			pointer = 1;
+			document.getElementById("Cell"+pointer).style.backgroundColor = "#db4e63";
+		}
+		function updatePointer() {
+			for (var i = 0; i < document.getElementById("code").getElementsByTagName("tr").length; i++) {
+				document.getElementById("code").getElementsByTagName("tr")[i].style.backgroundColor = "";
+			}
+			document.getElementById("Cell"+pointer).style.backgroundColor = "#db4e63";
+			document.getElementById("pointerDisplay").value = pointer;
+		}
+		function startInterval() {
+			var handle = setInterval(function () {
+				if (run) {
+					tick();
+				}else {
+					clearInterval(handle);
+				}
+			}, document.getElementById('clockspeed').innerHTML * 1000);
+		}
+		function programmToJson() {
+			var amount = document.getElementById("code").getElementsByTagName("tr");
+			var output = new Array();
+			for (var i = 1; i < amount.length; i++) {
+				var cmd = document.getElementById("Cell"+i).getElementsByClassName("cmd")[0].value;
+				var param = document.getElementById("Cell"+i).getElementsByClassName("param")[0].value;
+				param = parseInt(param);
+				output[i-1] = {"idx": i, "cmd": cmd, "param": param};
+			}
+			return output;
+		}
+		function jsonToProgramm(input) {
+			var beginningCells = currentCells();
+			var amount = 0;
+			for (var i = 0; i < input.length; i++) {
+				if (input[i].idx > amount) {
+					amount = input[i].idx;
+				}
+			}
+			for (var i = 0; i <= amount-beginningCells-1; i++) {
+				addCell();
+			}
+			for (var i = 0; i < input.length; i++) {
+				document.getElementById("Cell"+input[i].idx).getElementsByClassName("cmd")[0].value = input[i].cmd;
+				document.getElementById("Cell"+input[i].idx).getElementsByClassName("param")[0].value = input[i].param;
+			}
+			document.getElementById("Cell"+pointer).style.backgroundColor = "#db4e63";
+		}
+		function load() {
+			console.log(document.getElementById("upload").files[0]);
+			reader.readAsText(document.getElementById("upload").files[0]);
+			reader.onload = function (e) {
+				jsonToProgramm(JSON.parse(e.target.result));
+			};
+		}
+		function save() {
+			saveJSON(programmToJson(), "unbenannt.json");
+		}
+		function saveJSON(data, filename){
+		    if(!data) {
+		        console.error('No data')
+		        return;
+		    }
+		    if(!filename) filename = 'console.json'
+
+		    if(typeof data === "object"){
+		        data = JSON.stringify(data, undefined, 4)
+		    }
+		    var blob = new Blob([data], {type: 'text/json'}),
+		        e    = document.createEvent('MouseEvents'),
+		        a    = document.createElement('a')
+		    a.download = filename
+		    a.href = window.URL.createObjectURL(blob)
+		    a.dataset.downloadurl =  ['text/json', a.download, a.href].join(':')
+		    e.initMouseEvent('click', true, false, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null)
+		    a.dispatchEvent(e)
+		}
+		function currentCells() {
+			var i = 1;
+			var alreadyAvaileableCells = 0;
+			while (i >= 1) {
+				if (document.getElementById('Cell'+i) !== null) {
+					i++;
+				}else {
+					alreadyAvaileableCells = i-1;
+					i = 0;
+				}
+			}
+			return alreadyAvaileableCells;
+		}
+		function init() {
+			for (var i = 0; i < 8; i++) {
+				addDataregister();
+			}
+			addCell();
+			document.getElementById("Cell"+pointer).style.backgroundColor = "#db4e63";
+		}
+		init();
+	</script>
+</html>
