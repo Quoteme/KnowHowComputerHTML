@@ -3,4 +3,4 @@ Eine für HTML überarbeitete Version des klassischen Know-How-Computers aus dem
 
 Kein Server benötigt. Einfach die index.html im Browser öffnen und los gehts.
 
-![Beispielbild](https://i.imgur.com/CR6njN9.gif)
+![Beispielbild](https://i.imgur.com/SNTAixs.gif)
