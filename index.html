@@ -37,7 +37,7 @@
 				border-right: 1px solid black;
 				display: inline-block;
 				height: 100vh;
-				overflow: scroll;
+				/*overflow: scroll;*/
 				min-width: 250px;
 			}
 			input{
@@ -57,51 +57,106 @@
 				height: 100vh;
 				overflow: hidden;
 			}
+			.programm{
+				background-color: rgb(33, 33, 33);
+				width: 300px;
+			}
+			.settings{
+				background-color: rgb(50, 50, 50);
+				width: 200px;
+			}
+			.settings:not(h2){
+				line-height: 40px;
+			}
+			.datenregister{
+				background-color: rgb(59, 59, 59);
+			}
+			#mainProgramm{
+				width: 100%;
+				height: 100vh;
+				/*display: inline-block;*/
+			}
+			#mainProgramm tr td{
+				vertical-align: top;
+				color: #fff;
+				font-family: monospace;
+				padding: 5px;
+			}
+			h2{
+				text-shadow: 2px 2px 0px #aaa;
+				font-size: 24px;
+			}
+			th{
+				background-color: rgb(68, 187, 213)
+			}
+			#start{
+				background-color: rgb(97, 213, 68);
+				border-color: rgb(97, 213, 68);
+			}
+			#pause{
+				background-color: rgb(219, 78, 99);
+				border-color: rgb(219, 78, 99);
+			}
+			#step{
+				background-color: rgb(68, 187, 213);
+				border-color: rgb(68, 187, 213);
+			}
+			#author{
+				margin-top: 100px;
+			}
 		</style>
 	</head>
 	<body>
-		<div class="programm mainMenu">
-			<h2>PROGRAMM</h2>
-			<table id="code">
-				<tr>
-					<th>Idx</th>
-					<th>Cmd</th>
-					<th>Param</th>
-					<th><button type="button" onclick="addCode();">+</button></th>
-				</tr>
-			</table>
-		</div>
-		<div class="settings mainMenu">
-			<h2>EINSTELLUNGEN</h2>
-			<div>
-				<div>
-					Programmzeiger: <input id="pointerDisplay" type="number" value="1" onchange="pointer = this.value; updatePointer();">
-				</div>
-				<div>
-					Gewschwindigkeit: <span id="clockspeed">1</span><br>
-					<input style="width:90%" type="range" min="0.10" max="5" step="0.10" value="1" onchange="document.getElementById('clockspeed').innerHTML = this.value">
-				</div>
-				<div>
-					Intervall:<br>
-					<button type="button" onclick="run=true; startInterval();">Start</button>
-					<button type="button" onclick="run=false;">Pause</button>
-					<button type="button" onclick="tick();">Schritt</button>
-				</div>
-				<div>
-					Datei:<br>
-					<button type="button" onclick="save();">Speichern</button>
-					<br>
-					<input style="width: auto;" id="upload" type="file" value="" onchange="load();">
-				</div>
-			</div>
-		</div>
-		<div class="datenregister mainMenu">
-			<h2>DATENREGISTER</h2>
-			<div id="registers">
-				<div></div>
-			</div>
-			<button type="button" onclick="addDataregister()">+</button>
-		</div>
+		<table id="mainProgramm">
+			<tr>
+				<td class="programm">
+					<h2>PROGRAMM</h2>
+					<table id="code">
+						<tr>
+							<th>Idx</th>
+							<th>Cmd</th>
+							<th>Param</th>
+							<th><button type="button" onclick="addCode();">+</button></th>
+						</tr>
+					</table>
+				</td>
+				<td class="settings">
+					<h2>EINSTELLUNGEN</h2>
+					<div>
+						<div>
+							Programmzeiger: <input id="pointerDisplay" type="number" value="1" onchange="pointer = this.value; updatePointer();">
+						</div>
+						<div>
+							Gewschwindigkeit: <span id="clockspeed">1</span><br>
+							<input style="width:90%" type="range" min="0.10" max="5" step="0.10" value="1" onchange="document.getElementById('clockspeed').innerHTML = this.value">
+						</div>
+						<div>
+							Intervall:<br>
+							<button id="start" type="button" onclick="run=true; startInterval();">Start</button>
+							<button id="pause" type="button" onclick="run=false;">Pause</button>
+							<button id="step" type="button" onclick="tick();">Schritt</button>
+						</div>
+						<div>
+							Datei:<br>
+							<button type="button" onclick="save();">Speichern</button>
+							<br>
+							<input style="width: auto;" id="upload" type="file" value="" onchange="load();">
+						</div>
+						<div id="author">
+							@Author: Luca Leon Happel 13.Nov.2017<br>
+							Inspiriert von: Wolfgang Back's Know How Computer aus dem WDR
+						</div>
+					</div>
+				</td>
+				<td class="datenregister">
+					<h2>DATENREGISTER</h2>
+					<div id="registers">
+						<div></div>
+					</div>
+					<button type="button" onclick="addDataregister()">+</button>
+				</td>
+			</tr>
+		</table>
 	</body>
 	<script type="text/javascript">
 		// der Programmzeiger/pointer ist die Zeilenadresse, welche bei dem jetzigen Tick ausgeführt wird
