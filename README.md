@@ -6,3 +6,4 @@ Eine für HTML überarbeitete Version des klassischen Know-How-Computers aus dem
 Kein Server benötigt. Einfach die index.html im Browser öffnen und los gehts.
 
 ![Beispielbild](https://i.imgur.com/SNTAixs.gif)
+![Beispielbild](https://i.imgur.com/R5O38wV.png)
